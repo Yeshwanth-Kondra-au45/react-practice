@@ -1,0 +1,131 @@
+npx create-react-app todo-app
+cd todo-app
+npm install react-redux redux
+
+
+Navigate to the src directory and create a new file named types.js. This file will contain the action types for the Todo app:
+
+export const ADD_TODO = 'ADD_TODO';
+export const REMOVE_TODO = 'REMOVE_TODO';
+
+
+Create a new file named actions.js in the src directory. This file will contain the action creators for the Todo app:
+
+import { ADD_TODO, REMOVE_TODO } from './types';
+
+export const addTodo = text => ({
+  type: ADD_TODO,
+  payload: { text }
+});
+
+export const removeTodo = id => ({
+  type: REMOVE_TODO,
+  payload: { id }
+});
+
+Create a new file named todosReducer.js in the src directory. This file will contain the reducer for the Todo app:
+
+import { ADD_TODO, REMOVE_TODO } from './types';
+
+const todosReducer = (state = [], action) => {
+  switch (action.type) {
+    case ADD_TODO:
+      return [...state, { id: Math.random(), text: action.payload.text }];
+    case REMOVE_TODO:
+      return state.filter(todo => todo.id !== action.payload.id);
+    default:
+      return state;
+  }
+};
+
+export default todosReducer;
+
+Combine the todosReducer with any other reducers (if you have any) using the combineReducers function from the redux library. This will create a single root reducer that can be used in the app:
+
+import { combineReducers,createStore } from 'redux';
+import todosReducer from './todosReducer';
+
+const rootReducer = combineReducers({
+  todos: todosReducer
+});
+
+
+const store = createStore(rootReducer);
+
+export default store;
+
+Wrap the App component in the Provider component from the react-redux library. This will make the Redux store available to all components in the app:
+
+import React from 'react';
+import { Provider } from 'react-redux';
+import store from './store';
+import Todos from './Todos';
+import AddTodo from './AddTodo';
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <div>
+        <h1>Todo App</h1>
+        <Todos />
+        <AddTodo />
+      </div>
+    </Provider>
+  );
+};
+
+export default App;
+
+Create a new file named AddTodo.js in the src directory. This file will contain the component for adding todos:
+
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addTodo } from './actions';
+
+const AddTodo = () => {
+  const [text, setText] = useState('');
+  const dispatch = useDispatch();
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    dispatch(addTodo(text));
+    setText('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" value={text} onChange={e => setText(e.target.value)} />
+      <button type="submit">Add Todo</button>
+    </form>
+  );
+};
+
+export default Add
+
+Create a new file named Todos.js in the src directory. This file will contain the component for displaying the list of todos:
+
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeTodo } from './actions';
+
+const Todos = () => {
+  const todos = useSelector(state => state.todos);
+  const dispatch = useDispatch();
+
+  const handleRemove = id => {
+    dispatch(removeTodo(id));
+  };
+
+  return (
+    <ul>
+      {todos.map(todo => (
+        <li key={todo.id}>
+          {todo.text}
+          <button onClick={() => handleRemove(todo.id)}>Remove</button>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+export default Todos;
